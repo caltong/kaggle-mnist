@@ -7,7 +7,7 @@ from keras.layers import Conv2D, MaxPooling2D
 
 batch_size = 128
 num_classes = 10
-epochs = 12
+epochs = 32
 img_rows, img_cols = 28, 28
 
 
@@ -57,5 +57,6 @@ model.add(Dense(num_classes, activation='softmax'))
 model.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adadelta(), metrics=['accuracy'])
 model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(x_test, y_test))
 score = model.evaluate(x_test, y_test, verbose=0)
+model.save('model.h5')
 print('Test loss:', score[0])
 print('Test accuracy', score[1])

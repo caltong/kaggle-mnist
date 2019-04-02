@@ -1,4 +1,6 @@
 import numpy as np
+import csv
+import keras
 
 
 def load_test_data(path):
@@ -19,3 +21,15 @@ def load_test_data(path):
     data = data.astype(np.float32)
     data = data / 255.0
     return data
+
+
+img_rows, img_cols = 28, 28
+
+x_predict = load_test_data('test.csv')
+x_predict = x_predict.reshape(x_predict.shape[0], img_rows, img_cols, 1)
+input_shape = (img_rows, img_cols, 1)
+print(x_predict.shape)
+
+model = keras.models.load_model('model.h5')
+y_predict = model.predict_classes(x_predict, batch_size=32, verbose=1)
+print(y_predict.shape, y_predict[99][1], y_predict[99][2])
