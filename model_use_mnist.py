@@ -1,6 +1,10 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import csv
 import struct
+import matplotlib.pyplot as plt
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
@@ -29,31 +33,38 @@ def load_kaggle_data(path):
     data = temp_list[:, 1:]
     data = data.astype(np.float32)
     data = data / 255
+    data = data.reshape(data.shape[0], 28, 28, 1)
     return data, label
 
 
-def load_mnist_data(path):
-    binfile = open(path, 'rb')  # 读取二进制文件
-    buffers = binfile.read()
+def load_mnist_data(file_name):
+    #   在读取或写入一个文件之前，你必须使用 Python 内置open()函数来打开它。
+    #   file object = open(file_name [, access_mode][, buffering])
+    #   file_name是包含您要访问的文件名的字符串值。
+    #   access_mode指定该文件已被打开，即读，写，追加等方式。
+    #   0表示不使用缓冲，1表示在访问一个文件时进行缓冲。
+    #   这里rb表示只能以二进制读取的方式打开一个文件
+    with open(file_name, 'rb') as bin_file:
+        #   从一个打开的文件读取数据
+        buffers = bin_file.read()
+        #   读取image文件前4个整型数字
+        magic, num, rows, cols = struct.unpack_from('>IIII', buffers, 0)
+        #   整个images数据大小为60000*28*28
+        bits = num * rows * cols
+        #   读取images数据
+        images = struct.unpack_from('>' + str(bits) + 'B', buffers, struct.calcsize('>IIII'))
+        #   转换为[60000,784]型数组
+        # images = np.reshape(images, [num, rows * cols])
+        images = np.array(images)
+        images = images.reshape(num, rows, cols, 1)
+    return images
 
-    head = struct.unpack_from('>IIII', buffers, 0)  # 取前4个整数，返回一个元组
 
-    offset = struct.calcsize('>IIII')  # 定位到data开始的位置
-    imgNum = head[1]
-    width = head[2]
-    height = head[3]
+x_train_kaggle, y_train_kaggle = load_kaggle_data('train.csv')
+x_train_mnist = load_mnist_data('train-images.idx3-ubyte')
+x_train = np.append(x_train_kaggle,x_train_mnist,axis=0)
+print(x_train_kaggle.shape)
+print(x_train_mnist.shape)
+print(x_train.shape)
 
-    bits = imgNum * width * height  # data一共有60000*28*28个像素值
-    bitsString = '>' + str(bits) + 'B'  # fmt格式：'>47040000B'
-
-    imgs = struct.unpack_from(bitsString, buffers, offset)  # 取data数据，返回一个元组
-
-    binfile.close()
-    imgs = np.reshape(imgs, [imgNum, width * height])  # reshape为[60000,784]型数组
-
-    return imgs, head
-
-
-x_train, y_train = load_kaggle_data()
-
-model = keras.models.load_model('model.h5')
+# model = keras.models.load_model('model.h5')
