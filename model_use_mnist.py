@@ -4,7 +4,6 @@
 import numpy as np
 import csv
 import struct
-import matplotlib.pyplot as plt
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
@@ -14,6 +13,7 @@ batch_size = 128
 num_classes = 10
 epochs = 32
 img_rows, img_cols = 28, 28
+input_shape = (img_rows, img_cols, 1)
 
 
 def load_kaggle_data(path):
@@ -95,7 +95,19 @@ print('x_train_mnist.shape' + str(x_train_mnist.shape))
 print('x_train.shape' + str(x_train.shape))
 print('y_train.shape' + str(y_train.shape))
 
-model = keras.models.load_model('model.h5')
+model = Sequential()
+model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.25))
+model.add(Dense(64, activation='relu'))
+model.add(Dropout(0.25))
+model.add(Dense(num_classes, activation='softmax'))
+
+model.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adadelta(), metrics=['accuracy'])
 model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs,
           verbose=1)
 model.save('model_use_mnist.h5')

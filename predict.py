@@ -1,6 +1,7 @@
 import numpy as np
 import csv
 import keras
+import pandas as pd
 
 
 def load_test_data(path):
@@ -30,6 +31,8 @@ x_predict = x_predict.reshape(x_predict.shape[0], img_rows, img_cols, 1)
 input_shape = (img_rows, img_cols, 1)
 print(x_predict.shape)
 
-model = keras.models.load_model('model.h5')
-y_predict = model.predict_classes(x_predict, batch_size=32, verbose=1)
-print(y_predict.shape, y_predict[99][1], y_predict[99][2])
+model = keras.models.load_model('model_use_mnist.h5')
+y_predict = model.predict_classes(x_predict, verbose=1)
+pd.DataFrame({"ImageId": list(range(1, len(y_predict) + 1)), "Label": y_predict}).to_csv('submission_use_mnist.csv',
+                                                                                         index=False, header=True)
+# print(y_predict.shape, y_predict[99][1], y_predict[99][2])
