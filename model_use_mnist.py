@@ -33,7 +33,7 @@ def load_kaggle_data(path):
     data = temp_list[:, 1:]
     data = data.astype(np.float32)
     data = data / 255
-    data = data.reshape(data.shape[0], 28, 28, 1)
+    data = data.reshape(data.shape[0], img_rows, img_cols, 1)
     return data, label
 
 
@@ -54,7 +54,7 @@ def load_mnist_data(filename):
     imgs = struct.unpack_from(bitsString, buffers, offset)  # 取data数据，返回一个元组
 
     binfile.close()
-    imgs = np.reshape(imgs, [imgNum, 28, 28, 1])  # reshape为[60000,784]型数组
+    imgs = np.reshape(imgs, [imgNum, img_rows, img_cols, 1])  # reshape为[60000,784]型数组
 
     return imgs, head
 
@@ -78,16 +78,24 @@ def load_mnist_label(filename):
 
 
 x_train_kaggle, y_train_kaggle = load_kaggle_data('train.csv')
-x_train_mnist, _ = load_mnist_data('train-images.idx3-ubyte')
-y_train_mnist,_ = load_mnist_label('train-labels.idx1-ubyte')
 
+x_train_mnist, _ = load_mnist_data('train-images.idx3-ubyte')
+y_train_mnist, _ = load_mnist_label('train-labels.idx1-ubyte')
+
+x_train_mnist_test, _ = load_mnist_data('t10k-images.idx3-ubyte')
+y_train_mnist_test, _ = load_mnist_label('t10k-labels.idx1-ubyte')
 
 x_train = np.append(x_train_kaggle, x_train_mnist, axis=0)
-y_train = np.append(y_train_kaggle,y_train_mnist)
-print(x_train_kaggle.shape)
-print(x_train_mnist.shape)
-print(x_train.shape)
-print(y_train.shape)
+x_train = np.append(x_train, x_train_mnist_test, axis=0)
+y_train = np.append(y_train_kaggle, y_train_mnist)
+y_train = np.append(y_train, y_train_mnist_test)
+y_train = keras.utils.to_categorical(y_train, num_classes)
+print('x_train_kaggle.shape' + str(x_train_kaggle.shape))
+print('x_train_mnist.shape' + str(x_train_mnist.shape))
+print('x_train.shape' + str(x_train.shape))
+print('y_train.shape' + str(y_train.shape))
 
-
-# model = keras.models.load_model('model.h5')
+model = keras.models.load_model('model.h5')
+model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs,
+          verbose=1)
+model.save('model_use_mnist.h5')
